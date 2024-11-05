@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGI Interview MCQ Test - Round 1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: burlywood;
+            color: #333;
+        }
+        .container {
+            width: 60%;
+            margin: auto;
+            background: wheat;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .question {
+            display: none;
+        }
+        .question.active {
+            display: block;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+        }
+        .timer {
+            text-align: right;
+            font-weight: bold;
+        }
+        video {
+            display: block;
+            margin: 10px auto;
+        }
+        #submitBtn {
+            display: none; /* Hide the submit button by default */
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CGI Interview MCQ Test - Round 1</h1>
+        <div id="form-section">
+            <h2>Enter your details</h2>
+            <form id="user-form">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required><br><br>
+                <label for="degree">Degree:</label>
+                <input type="text" id="degree" name="degree" required><br><br>
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" required><br><br>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required><br><br>
+                <button type="submit">Start Test</button>
+            </form>
+        </div>
+
+        <div id="test-section" style="display:none;">
+            <h3>Web Camera Active:</h3>
+            <video id="webcam" autoplay playsinline width="300" height="200"></video>
+            <div class="timer">Time Left: <span id="time"></span></div>
+            <form id="quiz-form">
+                <!-- Questions will be dynamically inserted here -->
+            </form>
+            <div class="navigation">
+                <button id="prevBtn" onclick="prevQuestion()">Previous</button>
+                <button id="nextBtn" onclick="nextQuestion()">Next</button>
+            </div>
+            <button id="submitBtn" onclick="submitTest()">Submit Test</button>
+        </div>
+    </div>
+
+    <script>
+        // Web camera activation
+        function startWebcam() {
+            const video = document.getElementById('webcam');
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function(err) {
+                    alert("Unable to access web camera: " + err.message);
+                });
+            } else {
+                alert("Web camera not supported in your browser");
+            }
+        }
+
+        // Form submission to start test
+        document.getElementById("user-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            document.getElementById("form-section").style.display = 'none';
+            document.getElementById("test-section").style.display = 'block';
+            startWebcam(); // Start the webcam
+            startTimer(3600); // Set timer for 60 minutes (3600 seconds)
+            loadQuestion(0); // Load the first question
+        });
+
+        // Questions
+        const questions = [
+            { category: "Data Science", question: "1) What is the mean of 10, 20, 30?", options: ["10", "20", "30"], answer: "20" },
+            { category: "Data Science", question: "2) Which testing is a statistical method to compare two versions of webpage?", options: ["Alpha Test", "Beta Test", "A/B Test"], answer: "A/B Test" },
+            { category: "Data Science", question: "3)L2 Regulariztion is also known as ?", options: ["Ridge", "Lasso", "None"], answer: "Ridge" },
+            { category: "Data Science", question: "4)What does PCA stand for?", options: ["Principal Component Analysis", "Principal Companent Analytics", "Principal Code Analysis"], answer: "Principal Component Analysis" },
+            { category: "Data Science", question: "5)Which among the following focus on reducing variance by training multiple models independently their productions?", options: ["Boosting", "Stacking", "Bagging"], answer: "Bagging" },
+            { category: "Data Science", question: "6)Which is a type of network specifically designed for image processing task?", options: ["Back propagation", "CNN", "Neural Networks"], answer: "CNN" },
+            { category: "Data Science", question: "7)Which is used for numerical computations in python?", options: ["NumPy", "Pandas", "Both a & b"], answer: "NumPy" },
+            { category: "Data Science", question: "8)Which is a powerful library that provides data structure like dataframes?", options: ["Data Frame", "Pandas", "Seaborn"], answer: "Pandas" },
+            { category: "Data Science", question: "9)PyMark is the python API for Apache spark?", options: ["True", "False"], answer: "False" },
+            { category: "Data Science", question: "10)Which library is used for creating interactive web-based visualizations?", options: ["Seaborn", "Matplotlib", "Plotly"], answer: "Plotly" },
+            //Web development
+            { category: "Web Development", question: "1)Which of the following is used for version control in web development?", options: ["Git", "Stash", "Both A & B"], answer: "Both A & B" },
+            { category: "Web Development", question: "2)Which method in JavaScript is used to select an HTML element by its ID?", options: ["querySelector()", "getElementByTag()", "getElementById()"], answer: "getElementById()" },
+            { category: "Web Development", question: "3)What is the purpose of the <meta> tag in HTML?", options: ["To create links between documents","To define metadata about the document", "None"], answer: "To define metadata about the document" },
+            { category: "Web Development", question: "4)HTML stands for?", options: ["Hypertext Markup Language", "Hyper Mark Language", "None"], answer: "Hypertext Markup Language" },
+            { category: "Web Development", question: "5)Which of the following is the correct syntax to create a function in JavaScript?", options: ["function myFunction() {}","def myFunction() {}","function:myFunction() {}"], answer: "function myFunction() {}" },
+            { category: "Web Development", question: "6)Which of the following is used to pass data to a component in React?", options: ["setstate","props","state"], answer: "props" },
+            { category: "Web Development", question: "7)What is the correct way to create a component in React?", options: ["function MyComponent() { return <div> </div> }","const MyComponent = () => <div> </div>;","All the above"], answer: "All the above" },
+            { category: "Web Development", question: "8)Which hook is used to manage state in a functional component in React?", options: ["useState hook","useEffect","useRef"], answer: "useState hook" },
+            { category: "Web Development", question: "9)How do you connect to a MySQL database in PHP?", options: ["mysqli_connect()","connect()","mysqli_open()"], answer: "mysqli_connect()" },
+            { category: "Web Development", question: "10)Which of the following is used to handle asynchronous operations in JavaScript?", options: ["Loops","Premises","Variables"], answer: "Premises" },
+            { category: "Web Development", question: "11)Which one of the following form control types does not use the <INPUT> element?", options: ["checkbox","text","multitext"], answer: "multitext" },
+            { category: "Web Development", question: "12)Which property is used to change the background color?", options: ["backgroundcolor","background-color","color"], answer: "background-color" },
+            { category: "Web Development", question: "13)Which CSS property controls the text size?", options: ["font-style","font-size","text-size"], answer: "font-size" },
+            { category: "Web Development", question: "14)Which property is used to change the left margin of an element?", options: ["margin-left","padding-left","indent"], answer: "margin-left" },
+            { category: "Web Development", question: "15) What is the numerical range of a char?", options: ["0 to 65535","0 to 32767","-128 to 127"], answer: "0 to 65535" },
+            //Aptitude
+            { category: "Aptitude", question: "1)  A train running at the speed of 60 km/hr crosses a pole in 9 seconds. What is the length of the train?", options: ["180 meters", "140 meters", "150 meters"], answer: "150 meters" },
+            { category: "Aptitude", question: "2) An error 2% in excess is made while measuring the side of a square. The percentage of error in calculated area of square is:", options: ["4.04%", "4", "2.04%"], answer: "4.04%" },
+            { category: "Aptitude", question: "3)  Mr. Alex invested an amount of Rs. 13,900 divided in two different schemes A and B at the simple interest rate of 14% p.a. and 11% p.a. respectively. If the total amount of simple interest earned in 2 years be Rs. 3508, what was the amount invested in Scheme B?", options: ["Rs. 6000", "Rs. 6400", "Rs. 6500"], answer: "Rs. 6400" },
+            { category: "Aptitude", question: "4)  It was Sunday on Jan 1, 2006. What was the day of the week Jan 1, 2010?", options: ["Friday", "Sunday", "Monday"], answer: "Friday" },
+            { category: "Aptitude", question: "5)  A bag contains 2 red, 3 green and 2 blue balls. Two balls are drawn at random. What is the probability that none of the balls drawn is blue?", options: ["11/21", "5/7", "10/21"], answer: "10/21" },
+            { category: "Aptitude", question: "6)  A boat running upstream takes 8 hours 48 minutes to cover a certain distance, while it takes 4 hours to cover the same distance running downstream. What is the ratio between the speed of the boat and speed of the water current respectively?", options: ["1:2", "8:3", "cannot be determined"], answer: "8:3" },
+            { category: "Aptitude", question: "7)  Look at this series: 7, 10, 8, 11, 9, 12, ... What number should come next?", options: ["7", "10", "12"], answer: "10" },
+            { category: "Aptitude", question: "8)  SCD, TEF, UGH, ____, WKL", options: ["CMN", "VIJ", "IJT"], answer: "VIJ" },
+            { category: "Aptitude", question: "9)  Introducing a boy, a girl said, He is the son of the daughter of the father of my uncle. How is the boy related to the girl?", options: ["Cousin", "Nephew", "Uncle"], answer: "Cousin" },
+            { category: "Aptitude", question: "10) Two bus tickets from city A to B and three tickets from city A to C cost Rs. 77 but three tickets from city A to B and two tickets from city A to C cost Rs. 73. What are the fares for cities B and C from A ?", options: ["Rs. 4, Rs. 23", "Rs. 15, Rs. 14", "Rs. 13, Rs. 17"], answer: "Rs. 13, Rs. 17" },
+            { category: "Aptitude", question: "11) A, P, R, X, S and Z are sitting in a row. S and Z are in the centre. A and P are at the ends. R is sitting to the left of A. Who is to the right of P ?", options: ["X", "A", "S"], answer: "X" },
+            { category: "Aptitude", question: "12)If 3x + 4y : 4x + 6y = 22:32 then x:y is", options: ["1:2", "2:1", "None"], answer: "1:2" },
+            { category: "Aptitude", question: "13)  How many great circles can sphere have?", options: ["0", "1", "Infinity"], answer: "Infinity" },
+            { category: "Aptitude", question: "14) Kannan bought a raincoat and saved Rs.25 with discount of 20%. What was the original price of raincoat?", options: ["Rs.125", "Rs.150", "Rs.175"], answer: "Rs.125" },
+            { category: "Aptitude", question: "15)  If Sunday = 2, Tuesday =3, Thursday = 2. What is the value of Monday?", options: ["1", "2", "3"], answer: "2" },
+            // Data structure
+            { category: "Data structure & DBMS", question: "1) If a relation is in BCNF, it is also in ?", options: ["1NF", "2NF", "3NF","All the above"], answer: "All the above" },
+            { category: "Data structure & DBMS", question: "2) Race condition is caused due to? ", options: ["Multi-processing OS", "Multi-programming OS", "Both"], answer: "Both" },
+            { category: "Data structure & DBMS", question: "3) Which sorting algorithm is generally considered the most effective for large datasets ", options: ["Merge sort", "Insertion sort", "Quick sort"], answer: "Quick sort" },
+            { category: "Data structure & DBMS", question: "4) How many abstract methods should an abstract class have? ", options: ["Zero", "One", "Two"], answer: "Zero" },
+            { category: "Data structure & DBMS", question: "5) Set of consecutive memory location is called as? ", options: ["Loop", "Array", "Function"], answer: "Array" },
+            { category: "Data structure & DBMS", question: "6) How many distinct binary search trees can be created out of 4 distinct keys?", options: ["4", "14", "24"], answer: "14" },
+            { category: "Data structure & DBMS", question: "7) The following numbers are inserted into an empty binary search tree in the given order: 10,1,3,5,15,12,16. What is the height of the binary search tree?", options: ["3", "4", "6"], answer: "3" },
+            { category: "Data structure & DBMS", question: "8) Which Programming technique involves a function calling itself in order to solve a problem? ", options: ["Iteration", "Inheritance", "Recursion"], answer: "Recursion" },
+            { category: "Data structure & DBMS", question: "9) Which one of these is not a Database System Type? ", options: ["Relational", "Hierarchial", "MySql"], answer: "MySql" },
+            { category: "Data structure & DBMS", question: "10) Exception handling is targeted at?", options: ["Run-time error", "Compile=time error", "Logical error"], answer: "Run-time error" },
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = [];
+
+        // Load Question
+        function loadQuestion(index) {
+            const quizForm = document.getElementById("quiz-form");
+            quizForm.innerHTML = ''; // Clear previous question
+            const questionObj = questions[index];
+            const questionHTML = `
+                <div class="question active">
+                    <h3>${questionObj.category}: ${questionObj.question}</h3>
+                    ${questionObj.options.map((opt, i) => `<input type="radio" name="answer" value="${opt}" id="opt${i}">
+                    <label for="opt${i}">${opt}</label><br>`).join('')}
+                </div>`;
+            quizForm.innerHTML = questionHTML;
+
+            // Show/hide submit button
+            const submitBtn = document.getElementById("submitBtn");
+            submitBtn.style.display = (index === questions.length - 1) ? 'block' : 'none';
+        }
+
+        // Next/Previous Question
+        function nextQuestion() {
+            saveAnswer();
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+
+        // Save Answer
+        function saveAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (selectedAnswer) {
+                answers[currentQuestionIndex] = selectedAnswer.value;
+            }
+        }
+
+        // Timer function
+        function startTimer(duration) {
+            let timeLeft = duration;
+            const timerDisplay = document.getElementById("time");
+            const timer = setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                timeLeft--;
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        // Submit Test
+        function submitTest() {
+            saveAnswer(); // Save the last question answer
+            window.open('thank-you.html', '_blank'); // Open the thank you page in a new tab
+            console.log("User's answers:",answers)
+        }
+    </script>
+</body>
+</html>
